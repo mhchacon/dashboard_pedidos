@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pedidos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="login-container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="text" id="username" placeholder="Usuário" required><br>
+            <input type="password" id="password" placeholder="Senha" required><br>
+            <button type="submit">Entrar</button>
+        </form>
+        <div id="login-error" class="error"></div>
+    </div>
+
+    <div id="dashboard-container" style="display:none;">
+        <h2>Dashboard Pedidos</h2>
+        <div id="admin-actions" style="display:none;">
+            <form id="upload-form">
+                <input type="file" id="protheus-file" accept=".xlsx" required>
+                <button type="submit">Enviar Planilha Protheus</button>
+            </form>
+            <div id="upload-message"></div>
+            <form id="upload-cls-form">
+                <input type="file" id="cls-file" accept=".xlsx" required>
+                <button type="submit">Enviar Planilha CLS</button>
+            </form>
+            <div id="upload-cls-message"></div>
+        </div>
+        <div id="dashboard-resumo" class="dashboard-resumo"></div>
+        <div id="dashboard-sections" class="dashboard-sections">
+            <section id="aprovados-section" class="dashboard-section">
+                <h2 class="dashboard-title aprovados">Pedidos Aprovados</h2>
+                <div id="dashboard"></div>
+            </section>
+            <section id="aprovacao-section" class="dashboard-section">
+                <h2 class="dashboard-title aprovacao">Pedidos em Aprovação</h2>
+                <div id="dashboard-cls"></div>
+            </section>
+        </div>
+        <button id="logout-btn">Sair</button>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html> 

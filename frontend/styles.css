@@ -1,0 +1,273 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+#login-container, #dashboard-container {
+    max-width: 100vw;
+    margin: 40px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+h2 {
+    text-align: center;
+}
+form {
+    margin-bottom: 20px;
+    text-align: center;
+}
+input[type="text"], input[type="password"], input[type="file"] {
+    width: 80%;
+    padding: 8px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+button {
+    padding: 10px 20px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background: #0056b3;
+}
+.error {
+    color: #d00;
+    text-align: center;
+    margin-top: 10px;
+}
+#dashboard {
+    margin-top: 30px;
+}
+#dashboard-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: space-between;
+    margin-top: 32px;
+}
+#aprovados-section, #aprovacao-section {
+    flex: 1 1 45%;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 24px 18px 18px 18px;
+    min-width: 320px;
+}
+.dashboard-title {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.3em;
+    letter-spacing: 0.5px;
+    text-align: left;
+    padding-left: 4px;
+}
+.dashboard-title.aprovados {
+    color: #198754;
+    border-left: 5px solid #198754;
+    background: linear-gradient(90deg, #e9f7ef 60%, transparent 100%);
+}
+.dashboard-title.aprovacao {
+    color: #d39e00;
+    border-left: 5px solid #d39e00;
+    background: linear-gradient(90deg, #fff3cd 60%, transparent 100%);
+}
+#dashboard, #dashboard-cls {
+    margin-top: 0;
+}
+.dashboard-resumo {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+.resumo-cards-topo {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.dashboard-sections {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.dashboard-section {
+    flex: 1 1 0;
+    min-width: 340px;
+    max-width: 600px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 18px 12px 24px 12px;
+}
+@media (max-width: 900px) {
+    .dashboard-sections {
+        flex-direction: column;
+        gap: 18px;
+        max-width: 98vw;
+    }
+    .dashboard-section {
+        max-width: 100%;
+    }
+}
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    background: #fff;
+}
+.dashboard-table th, .dashboard-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+.dashboard-table th {
+    background: #f0f0f0;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.representante-row {
+    background: #e9f7ef;
+    font-weight: bold;
+    color: #198754;
+}
+#aprovacao-section .representante-row {
+    background: #fff3cd;
+    color: #d39e00;
+}
+.soma-row {
+    background: #e7f1ff;
+    font-style: italic;
+}
+#aprovacao-section .soma-row {
+    background: #fffbe6;
+}
+.rep-block {
+    margin-bottom: 18px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fafbfc;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    transition: box-shadow 0.2s;
+}
+.rep-block:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.rep-header {
+    cursor: pointer;
+    background: #f4f6fa;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+#aprovacao-section .rep-header {
+    background: #fffbe6;
+}
+.rep-header:hover {
+    background: #e7f1ff;
+}
+#aprovacao-section .rep-header:hover {
+    background: #fff3cd;
+}
+.rep-name {
+    flex: 1 1 auto;
+}
+.rep-total {
+    color: #198754;
+    margin-left: 16px;
+    font-weight: 500;
+}
+#aprovacao-section .rep-total {
+    color: #d39e00;
+}
+.rep-toggle {
+    margin-left: 8px;
+    font-size: 1.1em;
+    color: #888;
+}
+.rep-clientes {
+    padding: 0 12px 12px 12px;
+}
+.rep-clientes-row {
+    background: #f9f9f9;
+}
+#aprovacao-section .rep-clientes-row {
+    background: #fffde7;
+}
+.clientes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+}
+.clientes-table th, .clientes-table td {
+    border: 1px solid #e0e0e0;
+    padding: 6px 8px;
+    font-size: 0.98em;
+}
+.clientes-table th {
+    background: #f8f9fa;
+    font-weight: 500;
+}
+.total-geral {
+    background: #e7f1ff;
+    font-weight: bold;
+    font-size: 1.08em;
+}
+#aprovacao-section .total-geral {
+    background: #fffbe6;
+}
+.resumo-cards {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 18px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+.resumo-card {
+    background: #f4f6fa;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    padding: 14px 22px 10px 18px;
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-left: 5px solid #0d6efd;
+}
+#aprovacao-section .resumo-card {
+    border-left: 5px solid #d39e00;
+    background: #fffbe6;
+}
+.resumo-label {
+    font-size: 0.98em;
+    color: #888;
+    margin-bottom: 2px;
+}
+.resumo-valor {
+    font-size: 1.25em;
+    font-weight: bold;
+    color: #0d6efd;
+    margin-bottom: 2px;
+}
+#aprovacao-section .resumo-valor {
+    color: #d39e00;
+}
+.resumo-data {
+    font-size: 0.95em;
+    color: #555;
+} 
