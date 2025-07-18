@@ -12,6 +12,8 @@ import io
 app = Flask(__name__)
 CORS(app)
 
+# Estados do Nordeste
+ESTADOS_NORDESTE = ['PE', 'PB', 'RN', 'AL', 'BA', 'MA', 'SE', 'CE']
 
 # Configurações
 app.config['UPLOAD_FOLDER'] = 'uploads/'
@@ -75,10 +77,67 @@ def upload_protheus():
 
 @app.route('/dashboard_protheus')
 def dashboard_protheus():
+    role = request.args.get('role', '')
+    uf = request.args.get('uf', '')
     doc = colecao_protheus.find_one({}, {'_id': 0})
-    # print("DOC PROTHEUS:", doc)
     if not doc:
         return jsonify({'dados': [], 'ultimo_dia': '', 'valor_ultimo_dia': 0, 'ultimo_mes': '', 'valor_ultimo_mes': 0})
+    dados = doc.get('tabela', [])
+    if role == 'nordeste':
+        dados = [d for d in dados if d.get('C5_UFDEST', '') in ESTADOS_NORDESTE]
+        def soma_valor(chave):
+            total = 0
+            for d in dados:
+                try:
+                    v = float(str(d.get(chave, '0')).replace('.', '').replace(',', '.'))
+                except:
+                    v = 0
+                total += v
+            return total
+        valor_ultimo_dia = soma_valor('valor_ultimo_dia')
+        valor_ultimo_mes = soma_valor('total_representante')
+        return jsonify({
+            'dados': dados,
+            'ultimo_dia': doc.get('ultimo_dia', ''),
+            'valor_ultimo_dia': valor_ultimo_dia,
+            'ultimo_mes': doc.get('ultimo_mes', ''),
+            'valor_ultimo_mes': valor_ultimo_mes
+        })
+    elif role in ['admin', 'gerencia'] and uf:
+        # Novo filtro: filtrar clientes pela UF
+        dados_filtrados = []
+        for rep in dados:
+            clientes_filtrados = [cli for cli in rep.get('clientes', []) if cli.get('UF', '') == uf]
+            if clientes_filtrados:
+                total_rep = 0
+                for cli in clientes_filtrados:
+                    try:
+                        v = float(str(cli.get('valor', '0')).replace('.', '').replace(',', '.'))
+                    except:
+                        v = 0
+                    total_rep += v
+                rep_novo = rep.copy()
+                rep_novo['clientes'] = clientes_filtrados
+                rep_novo['total_representante'] = f"{total_rep:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                dados_filtrados.append(rep_novo)
+        def soma_valor_total():
+            total = 0
+            for d in dados_filtrados:
+                try:
+                    v = float(str(d.get('total_representante', '0')).replace('.', '').replace(',', '.'))
+                except:
+                    v = 0
+                total += v
+            return total
+        valor_ultimo_dia = soma_valor_total()
+        valor_ultimo_mes = soma_valor_total()
+        return jsonify({
+            'dados': dados_filtrados,
+            'ultimo_dia': doc.get('ultimo_dia', ''),
+            'valor_ultimo_dia': valor_ultimo_dia,
+            'ultimo_mes': doc.get('ultimo_mes', ''),
+            'valor_ultimo_mes': valor_ultimo_mes
+        })
     return jsonify({
         'dados': doc.get('tabela', []),
         'ultimo_dia': doc.get('ultimo_dia', ''),
@@ -107,10 +166,67 @@ def upload_cls():
 
 @app.route('/dashboard_cls')
 def dashboard_cls():
+    role = request.args.get('role', '')
+    uf = request.args.get('uf', '')
     doc = colecao_cls.find_one({}, {'_id': 0})
-    # print("DOC CLS:", doc)
     if not doc:
         return jsonify({'dados': [], 'ultimo_dia': '', 'valor_ultimo_dia': 0, 'ultimo_mes': '', 'valor_ultimo_mes': 0})
+    dados = doc.get('tabela', [])
+    if role == 'nordeste':
+        dados = [d for d in dados if d.get('UF', '') in ESTADOS_NORDESTE]
+        def soma_valor(chave):
+            total = 0
+            for d in dados:
+                try:
+                    v = float(str(d.get(chave, '0')).replace('.', '').replace(',', '.'))
+                except:
+                    v = 0
+                total += v
+            return total
+        valor_ultimo_dia = soma_valor('valor_ultimo_dia')
+        valor_ultimo_mes = soma_valor('total_representante')
+        return jsonify({
+            'dados': dados,
+            'ultimo_dia': doc.get('ultimo_dia', ''),
+            'valor_ultimo_dia': valor_ultimo_dia,
+            'ultimo_mes': doc.get('ultimo_mes', ''),
+            'valor_ultimo_mes': valor_ultimo_mes
+        })
+    elif role in ['admin', 'gerencia'] and uf:
+        # Novo filtro: filtrar clientes pela UF
+        dados_filtrados = []
+        for rep in dados:
+            clientes_filtrados = [cli for cli in rep.get('clientes', []) if cli.get('UF', '') == uf]
+            if clientes_filtrados:
+                total_rep = 0
+                for cli in clientes_filtrados:
+                    try:
+                        v = float(str(cli.get('valor', '0')).replace('.', '').replace(',', '.'))
+                    except:
+                        v = 0
+                    total_rep += v
+                rep_novo = rep.copy()
+                rep_novo['clientes'] = clientes_filtrados
+                rep_novo['total_representante'] = f"{total_rep:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                dados_filtrados.append(rep_novo)
+        def soma_valor_total():
+            total = 0
+            for d in dados_filtrados:
+                try:
+                    v = float(str(d.get('total_representante', '0')).replace('.', '').replace(',', '.'))
+                except:
+                    v = 0
+                total += v
+            return total
+        valor_ultimo_dia = soma_valor_total()
+        valor_ultimo_mes = soma_valor_total()
+        return jsonify({
+            'dados': dados_filtrados,
+            'ultimo_dia': doc.get('ultimo_dia', ''),
+            'valor_ultimo_dia': valor_ultimo_dia,
+            'ultimo_mes': doc.get('ultimo_mes', ''),
+            'valor_ultimo_mes': valor_ultimo_mes
+        })
     return jsonify({
         'dados': doc.get('tabela', []),
         'ultimo_dia': doc.get('ultimo_dia', ''),
@@ -126,14 +242,22 @@ def favicon():
 @app.route('/export_dashboard_image')
 def export_dashboard_image():
     from datetime import datetime
+    role = request.args.get('role', '')
+    uf = request.args.get('uf', '')
     # Buscar dados do Protheus e CLS
     doc_protheus = colecao_protheus.find_one({}, {'_id': 0})
     doc_cls = colecao_cls.find_one({}, {'_id': 0})
     # Preparar dados agrupados por representante
-    def agrupar_representantes(dados):
+    def agrupar_representantes(dados, uf_key=None):
         reps = []
         total_geral = 0.0
         for rep in dados:
+            if role == 'nordeste' and uf_key:
+                if rep.get(uf_key, '') not in ESTADOS_NORDESTE:
+                    continue
+            if role in ['admin', 'gerencia'] and uf and uf_key:
+                if rep.get(uf_key, '') != uf:
+                    continue
             nome = rep['representante']
             try:
                 total = float(str(rep['total_representante']).replace('.', '').replace(',', '.'))
@@ -145,8 +269,8 @@ def export_dashboard_image():
         return reps, total_geral
     dados_protheus = doc_protheus.get('tabela', []) if doc_protheus else []
     dados_cls = doc_cls.get('tabela', []) if doc_cls else []
-    reps_aprovados, total_aprovados = agrupar_representantes(dados_protheus)
-    reps_aprovacao, total_aprovacao = agrupar_representantes(dados_cls)
+    reps_aprovados, total_aprovados = agrupar_representantes(dados_protheus, uf_key='C5_UFDEST')
+    reps_aprovacao, total_aprovacao = agrupar_representantes(dados_cls, uf_key='UF')
     # Cabeçalho: mês/ano e total geral em português
     hoje = datetime.now()
     meses_pt = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']

@@ -524,3 +524,57 @@ button:hover {
         font-size: 0.92em;
     }
 } 
+
+.uf-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-bottom: 18px;
+    margin-top: 0;
+}
+.uf-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.uf-label {
+    font-weight: 600;
+    color: #222c3a;
+    font-size: 1em;
+    margin-right: 4px;
+}
+.uf-select {
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid #bfc9d1;
+    font-size: 1em;
+    background: #f8fafc;
+    min-width: 70px;
+    transition: border 0.2s;
+}
+.uf-select:focus {
+    border: 1.5px solid #007bff;
+    outline: none;
+}
+.download-btn-small {
+    padding: 6px 16px;
+    font-size: 0.98em;
+    border-radius: 6px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.download-btn-small .icon {
+    font-size: 1.1em;
+}
+.download-btn-small:hover, .download-btn-small:focus {
+    background: #0056b3;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+} 

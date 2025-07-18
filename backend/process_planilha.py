@@ -22,6 +22,7 @@ def processar_protheus(filepath):
     idx_qtdven = headers.index('C6_QTDVEN') if 'C6_QTDVEN' in headers else None
     idx_prcven = headers.index('C6_PRCVEN') if 'C6_PRCVEN' in headers else None
     idx_xvpremi = headers.index('C6_XVPREMI') if 'C6_XVPREMI' in headers else None
+    idx_ufdest = headers.index('C5_UFDEST') if 'C5_UFDEST' in headers else None
 
     dados = defaultdict(lambda: defaultdict(float))
     soma_representante = defaultdict(float)
@@ -36,6 +37,7 @@ def processar_protheus(filepath):
         condpag = str(row[idx_condpag].value) if row[idx_condpag].value is not None else ''
         xopfat = str(row[idx_xopfat].value) if row[idx_xopfat].value is not None else ''
         data_emissao = row[idx_emissao].value
+        ufdest = row[idx_ufdest].value if idx_ufdest is not None else ''
         # Filtros
         if condpag == '103':
             continue
@@ -92,13 +94,26 @@ def processar_protheus(filepath):
     # Montar estrutura para dashboard
     resultado = []
     for representante, clientes in dados.items():
-        clientes_list = [
-            {'cliente': c, 'valor': formatar_valor(v)} for c, v in clientes.items()
-        ]
+        clientes_list = []
+        for c, v in clientes.items():
+            # Procurar UF do cliente
+            uf_cliente = ''
+            for row in ws.iter_rows(min_row=2):
+                if row[idx_nome].value == representante and row[idx_cliente].value == c:
+                    uf_cliente = row[idx_ufdest].value if idx_ufdest is not None else ''
+                    break
+            clientes_list.append({'cliente': c, 'valor': formatar_valor(v), 'UF': uf_cliente})
+        # Pega o UF do primeiro cliente desse representante (assume igual para todos)
+        uf_rep = ''
+        for row in ws.iter_rows(min_row=2):
+            if row[idx_nome].value == representante:
+                uf_rep = row[idx_ufdest].value if idx_ufdest is not None else ''
+                break
         resultado.append({
             'representante': representante,
             'total_representante': formatar_valor(soma_representante[representante]),
-            'clientes': clientes_list
+            'clientes': clientes_list,
+            'C5_UFDEST': uf_rep
         })
     # Calcular último dia e mês
     if datas:
@@ -133,6 +148,7 @@ def processar_cls(filepath):
     idx_cliente = headers.index('Nome Cliente')
     idx_valor = headers.index('Valor Líquido')
     idx_emissao = headers.index('Data Emissão')
+    idx_uf = headers.index('UF') if 'UF' in headers else None
 
     dados = defaultdict(lambda: defaultdict(float))
     soma_representante = defaultdict(float)
@@ -147,6 +163,7 @@ def processar_cls(filepath):
         cliente = row[idx_cliente].value
         valor = row[idx_valor].value
         data_emissao = row[idx_emissao].value
+        uf = row[idx_uf].value if idx_uf is not None else ''
         if status not in ['Aprovação Comercial', 'Aprovação de Crédito', 'Em Revisão']:
             continue
         if favoravel not in ['Sim', 'S', 'Favorável', True, 1]:
@@ -172,13 +189,26 @@ def processar_cls(filepath):
 
     resultado = []
     for representante, clientes in dados.items():
-        clientes_list = [
-            {'cliente': c, 'valor': formatar_valor(v)} for c, v in clientes.items()
-        ]
+        clientes_list = []
+        for c, v in clientes.items():
+            # Procurar UF do cliente
+            uf_cliente = ''
+            for row in ws.iter_rows(min_row=2):
+                if row[idx_representante].value == representante and row[idx_cliente].value == c:
+                    uf_cliente = row[idx_uf].value if idx_uf is not None else ''
+                    break
+            clientes_list.append({'cliente': c, 'valor': formatar_valor(v), 'UF': uf_cliente})
+        # Pega o UF do primeiro cliente desse representante (assume igual para todos)
+        uf_rep = ''
+        for row in ws.iter_rows(min_row=2):
+            if row[idx_representante].value == representante:
+                uf_rep = row[idx_uf].value if idx_uf is not None else ''
+                break
         resultado.append({
             'representante': representante,
             'total_representante': formatar_valor(soma_representante[representante]),
-            'clientes': clientes_list
+            'clientes': clientes_list,
+            'UF': uf_rep
         })
     # Calcular último dia e mês
     if datas:

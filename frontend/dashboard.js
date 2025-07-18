@@ -152,9 +152,56 @@ window.toggleRep = function(repId) {
     }
 };
 
+const estadosBrasil = [
+    'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
+];
+
+function criarDropdownUF() {
+    const role = localStorage.getItem('role');
+    if (role !== 'admin' && role !== 'gerencia') return;
+    let container = document.getElementById('uf-filter-row');
+    if (!container) {
+        // Cria uma linha flexível para filtro e botão
+        container = document.createElement('div');
+        container.id = 'uf-filter-row';
+        container.className = 'uf-filter-row';
+        // Insere logo após o dashboard-resumo
+        const resumo = document.getElementById('dashboard-resumo');
+        resumo.parentNode.insertBefore(container, resumo.nextSibling);
+    }
+    let html = `<div class="uf-filter-group">
+        <label for="uf-select" class="uf-label">UF:</label>
+        <select id="uf-select" class="uf-select">
+            <option value="">Todos</option>`;
+    estadosBrasil.forEach(uf => {
+        html += `<option value="${uf}">${uf}</option>`;
+    });
+    html += `</select></div>`;
+    // Botão de download ao lado
+    html += `<button id="download-dashboard-btn" class="download-btn-small"><span class="icon">💾</span> Baixar imagem</button>`;
+    container.innerHTML = html;
+    document.getElementById('uf-select').onchange = function() {
+        loadDashboard();
+        loadDashboardCls();
+    };
+    document.getElementById('download-dashboard-btn').onclick = downloadBtn.onclick;
+}
+
 async function loadDashboard() {
     dashboardDiv.innerHTML = '<em>Carregando dados...</em>';
-    const res = await fetch(`${API_URL}/dashboard_protheus`);
+    const role = localStorage.getItem('role');
+    let url = `${API_URL}/dashboard_protheus`;
+    if (role === 'nordeste') {
+        url += '?role=nordeste';
+    } else if ((role === 'admin' || role === 'gerencia')) {
+        const uf = document.getElementById('uf-select')?.value;
+        if (uf) {
+            url += `?role=${role}&uf=${uf}`;
+        } else {
+            url += `?role=${role}`;
+        }
+    }
+    const res = await fetch(url);
     if (res.status === 401) {
         window.location.href = 'login.html';
         return;
@@ -167,7 +214,19 @@ async function loadDashboard() {
 
 async function loadDashboardCls() {
     dashboardClsDiv.innerHTML = '<em>Carregando dados da CLS...</em>';
-    const res = await fetch(`${API_URL}/dashboard_cls`);
+    const role = localStorage.getItem('role');
+    let url = `${API_URL}/dashboard_cls`;
+    if (role === 'nordeste') {
+        url += '?role=nordeste';
+    } else if ((role === 'admin' || role === 'gerencia')) {
+        const uf = document.getElementById('uf-select')?.value;
+        if (uf) {
+            url += `?role=${role}&uf=${uf}`;
+        } else {
+            url += `?role=${role}`;
+        }
+    }
+    const res = await fetch(url);
     if (res.status === 401) {
         window.location.href = 'login.html';
         return;
@@ -190,7 +249,19 @@ function expandirTodosReps() {
 
 downloadBtn.onclick = function() {
     // Baixar imagem gerada pelo backend
-    fetch('/export_dashboard_image')
+    const role = localStorage.getItem('role');
+    let url = '/export_dashboard_image';
+    if (role === 'nordeste') {
+        url += '?role=nordeste';
+    } else if ((role === 'admin' || role === 'gerencia')) {
+        const uf = document.getElementById('uf-select')?.value;
+        if (uf) {
+            url += `?role=${role}&uf=${uf}`;
+        } else {
+            url += `?role=${role}`;
+        }
+    }
+    fetch(url)
         .then(response => response.blob())
         .then(blob => {
             const url = window.URL.createObjectURL(blob);
@@ -212,6 +283,10 @@ window.onload = () => {
     } else {
         document.getElementById('admin-actions').style.display = 'none';
     }
+    // Remove botão antigo se existir
+    const btnAntigo = document.getElementById('download-dashboard-btn');
+    if (btnAntigo) btnAntigo.style.display = 'none';
+    criarDropdownUF();
     loadDashboard();
     loadDashboardCls();
 }; 
