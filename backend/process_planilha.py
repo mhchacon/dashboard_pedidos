@@ -2,6 +2,9 @@ import openpyxl
 from collections import defaultdict
 from datetime import datetime
 
+def formatar_valor(valor):
+    return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 def processar_protheus(filepath):
     wb = openpyxl.load_workbook(filepath, data_only=True)
     ws = wb.active
@@ -14,6 +17,11 @@ def processar_protheus(filepath):
     idx_condpag = headers.index('C5_CONDPAG')
     idx_xopfat = headers.index('C5_XOPFAT')
     idx_emissao = headers.index('C5_EMISSAO')
+    # Novos índices para cálculo especial
+    idx_xpremio = headers.index('C6_XPREMIO') if 'C6_XPREMIO' in headers else None
+    idx_qtdven = headers.index('C6_QTDVEN') if 'C6_QTDVEN' in headers else None
+    idx_prcven = headers.index('C6_PRCVEN') if 'C6_PRCVEN' in headers else None
+    idx_xvpremi = headers.index('C6_XVPREMI') if 'C6_XVPREMI' in headers else None
 
     dados = defaultdict(lambda: defaultdict(float))
     soma_representante = defaultdict(float)
@@ -33,13 +41,37 @@ def processar_protheus(filepath):
             continue
         if xopfat not in ('1', ''):
             continue
-        if not nome or not cliente or valor is None or not data_emissao:
+        if not nome or not cliente or data_emissao is None:
             continue
-        # Converter valor decimal de ponto para vírgula e somar
-        try:
-            valor_float = float(str(valor).replace(',', '').replace('.', '.'))
-        except Exception:
-            continue
+        # Lógica para pedidos com prêmio
+        valor_float = 0.0
+        is_premio = False
+        if idx_xpremio is not None and row[idx_xpremio].value == 'S':
+            is_premio = True
+            # Pega os valores, tratando nulos como zero
+            qtdven = row[idx_qtdven].value if idx_qtdven is not None and row[idx_qtdven].value is not None else 0
+            prcven = row[idx_prcven].value if idx_prcven is not None and row[idx_prcven].value is not None else 0
+            xvpremi = row[idx_xvpremi].value if idx_xvpremi is not None and row[idx_xvpremi].value is not None else 0
+            try:
+                qtdven = float(str(qtdven).replace(',', '').replace('.', '.'))
+            except Exception:
+                qtdven = 0.0
+            try:
+                prcven = float(str(prcven).replace(',', '').replace('.', '.'))
+            except Exception:
+                prcven = 0.0
+            try:
+                xvpremi = float(str(xvpremi).replace(',', '').replace('.', '.'))
+            except Exception:
+                xvpremi = 0.0
+            valor_float = (qtdven * prcven) + xvpremi
+        else:
+            if valor is None:
+                continue
+            try:
+                valor_float = float(str(valor).replace(',', '').replace('.', '.'))
+            except Exception:
+                continue
         # Converter data para datetime
         try:
             data_str = str(data_emissao)
@@ -61,11 +93,11 @@ def processar_protheus(filepath):
     resultado = []
     for representante, clientes in dados.items():
         clientes_list = [
-            {'cliente': c, 'valor': round(v, 2)} for c, v in clientes.items()
+            {'cliente': c, 'valor': formatar_valor(v)} for c, v in clientes.items()
         ]
         resultado.append({
             'representante': representante,
-            'total_representante': round(soma_representante[representante], 2),
+            'total_representante': formatar_valor(soma_representante[representante]),
             'clientes': clientes_list
         })
     # Calcular último dia e mês
@@ -73,11 +105,11 @@ def processar_protheus(filepath):
         ultimo_dia = max(datas)
         ultimo_dia_str = ultimo_dia.strftime('%Y-%m-%d')
         ultimo_mes = ultimo_dia.strftime('%Y-%m')
-        valor_ultimo_dia = round(valores_por_dia[ultimo_dia_str], 2)
-        valor_ultimo_mes = round(valores_por_mes[ultimo_mes], 2)
+        valor_ultimo_dia = formatar_valor(valores_por_dia[ultimo_dia_str])
+        valor_ultimo_mes = formatar_valor(valores_por_mes[ultimo_mes])
     else:
-        valor_ultimo_dia = 0
-        valor_ultimo_mes = 0
+        valor_ultimo_dia = formatar_valor(0.0)
+        valor_ultimo_mes = formatar_valor(0.0)
         ultimo_dia_str = ''
         ultimo_mes = ''
     return {
@@ -115,7 +147,7 @@ def processar_cls(filepath):
         cliente = row[idx_cliente].value
         valor = row[idx_valor].value
         data_emissao = row[idx_emissao].value
-        if status not in ['Aprovação Comercial', 'Aprovação de Crédito']:
+        if status not in ['Aprovação Comercial', 'Aprovação de Crédito', 'Em Revisão']:
             continue
         if favoravel not in ['Sim', 'S', 'Favorável', True, 1]:
             continue
@@ -141,11 +173,11 @@ def processar_cls(filepath):
     resultado = []
     for representante, clientes in dados.items():
         clientes_list = [
-            {'cliente': c, 'valor': round(v, 2)} for c, v in clientes.items()
+            {'cliente': c, 'valor': formatar_valor(v)} for c, v in clientes.items()
         ]
         resultado.append({
             'representante': representante,
-            'total_representante': round(soma_representante[representante], 2),
+            'total_representante': formatar_valor(soma_representante[representante]),
             'clientes': clientes_list
         })
     # Calcular último dia e mês
@@ -153,11 +185,11 @@ def processar_cls(filepath):
         ultimo_dia = max(datas)
         ultimo_dia_str = ultimo_dia.strftime('%Y-%m-%d')
         ultimo_mes = ultimo_dia.strftime('%Y-%m')
-        valor_ultimo_dia = round(valores_por_dia[ultimo_dia_str], 2)
-        valor_ultimo_mes = round(valores_por_mes[ultimo_mes], 2)
+        valor_ultimo_dia = formatar_valor(valores_por_dia[ultimo_dia_str])
+        valor_ultimo_mes = formatar_valor(valores_por_mes[ultimo_mes])
     else:
-        valor_ultimo_dia = 0
-        valor_ultimo_mes = 0
+        valor_ultimo_dia = formatar_valor(0)
+        valor_ultimo_mes = formatar_valor(0)
         ultimo_dia_str = ''
         ultimo_mes = ''
     return {

@@ -7,27 +7,11 @@
     <link rel="icon" type="image/x-icon" href="/luzarte.ico">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="login-bg">
-    <div class="login-outer">
-        <div id="login-container" class="login-card">
-            <img src="/luzarte.ico" alt="Luzarte Logo" class="login-logo">
-            <h2 class="login-title">Bem-vindo ao Dashboard</h2>
-            <div class="login-subtitle">Acesse para consultar valores de pedidos</div>
-            <form id="login-form">
-                <label for="username">Usuário</label>
-                <input type="text" id="username" placeholder="Usuário" required><br>
-                <label for="password">Senha</label>
-                <input type="password" id="password" placeholder="Senha" required><br>
-                <button type="submit" class="login-btn">Entrar</button>
-            </form>
-            <div id="login-error" class="error"></div>
-            <div id="logout-message" class="info"></div>
-        </div>
-    </div>
-
-    <div id="dashboard-container" style="display:none;">
+<body>
+    <button id="logout-btn" class="logout-btn">Sair</button>
+    <div id="dashboard-container">
         <h2>Dashboard Pedidos</h2>
-        <div id="admin-actions" style="display:none;">
+        <div id="admin-actions">
             <form id="upload-form">
                 <input type="file" id="protheus-file" accept=".xlsx" required>
                 <button type="submit">Enviar Planilha Protheus</button>
@@ -39,7 +23,7 @@
             </form>
             <div id="upload-cls-message"></div>
         </div>
-        <button id="download-dashboard-btn" style="display:none; margin-bottom:16px;">Baixar imagem do dashboard</button>
+        <button id="download-dashboard-btn" style="margin-bottom:16px;">Baixar imagem do dashboard</button>
         <div id="dashboard-resumo" class="dashboard-resumo"></div>
         <div id="dashboard-sections" class="dashboard-sections">
             <section id="aprovados-section" class="dashboard-section">
@@ -51,9 +35,7 @@
                 <div id="dashboard-cls"></div>
             </section>
         </div>
-        <button id="logout-btn">Sair</button>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="dashboard.js"></script>
 </body>

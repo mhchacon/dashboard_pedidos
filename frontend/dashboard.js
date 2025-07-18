@@ -1,46 +1,19 @@
-const loginForm = document.getElementById('login-form');
-const loginContainer = document.getElementById('login-container');
 const dashboardContainer = document.getElementById('dashboard-container');
 const adminActions = document.getElementById('admin-actions');
 const uploadForm = document.getElementById('upload-form');
 const uploadMessage = document.getElementById('upload-message');
 const dashboardDiv = document.getElementById('dashboard');
 const logoutBtn = document.getElementById('logout-btn');
-const loginError = document.getElementById('login-error');
 const uploadClsForm = document.getElementById('upload-cls-form');
 const uploadClsMessage = document.getElementById('upload-cls-message');
 const dashboardClsDiv = document.getElementById('dashboard-cls');
+const downloadBtn = document.getElementById('download-dashboard-btn');
+
+const API_URL = "";
 
 let userRole = null;
 let resumoProtheus = null;
 let resumoCls = null;
-
-loginForm.onsubmit = async (e) => {
-    e.preventDefault();
-    loginError.textContent = '';
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const res = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    if (data.success) {
-        userRole = data.role;
-        loginContainer.style.display = 'none';
-        dashboardContainer.style.display = 'block';
-        if (userRole === 'admin') {
-            adminActions.style.display = 'block';
-        } else {
-            adminActions.style.display = 'none';
-        }
-        loadDashboard();
-        loadDashboardCls();
-    } else {
-        loginError.textContent = data.message || 'Erro no login';
-    }
-};
 
 if (uploadForm) {
     uploadForm.onsubmit = async (e) => {
@@ -53,7 +26,7 @@ if (uploadForm) {
         }
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
-        const res = await fetch('http://localhost:5000/upload_protheus', {
+        const res = await fetch(`${API_URL}/upload_protheus`, {
             method: 'POST',
             body: formData
         });
@@ -78,7 +51,7 @@ if (uploadClsForm) {
         }
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
-        const res = await fetch('http://localhost:5000/upload_cls', {
+        const res = await fetch(`${API_URL}/upload_cls`, {
             method: 'POST',
             body: formData
         });
@@ -93,13 +66,27 @@ if (uploadClsForm) {
 }
 
 logoutBtn.onclick = () => {
-    userRole = null;
+    localStorage.removeItem('role');
     dashboardDiv.innerHTML = '';
     dashboardClsDiv.innerHTML = '';
     dashboardContainer.style.display = 'none';
-    loginContainer.style.display = 'block';
-    loginForm.reset();
+    window.location.href = 'login.html';
 };
+
+function formatarDataBR(data, tipo) {
+    if (!data || data.length < 7) return data || '-';
+    // Para datas no formato '2025-07-17'
+    if (data.length === 10 && data.includes('-')) {
+        const [ano, mes, dia] = data.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+    // Para datas no formato '2025-07' (mês)
+    if (data.length === 7 && data.includes('-')) {
+        const [ano, mes] = data.split('-');
+        return `${mes}/${ano}`;
+    }
+    return data;
+}
 
 function renderResumoTopo() {
     const container = document.getElementById('dashboard-resumo');
@@ -109,15 +96,20 @@ function renderResumoTopo() {
     }
     let html = '<div class="resumo-cards-topo">';
     if (resumoProtheus) {
-        html += `<div class="resumo-card resumo-aprovados"><div class="resumo-label">Aprovados - Último Dia</div><div class="resumo-valor">R$ ${resumoProtheus.valor_ultimo_dia.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="resumo-data">${resumoProtheus.ultimo_dia || '-'}</div></div>`;
-        html += `<div class="resumo-card resumo-aprovados"><div class="resumo-label">Aprovados - Último Mês</div><div class="resumo-valor">R$ ${resumoProtheus.valor_ultimo_mes.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="resumo-data">${resumoProtheus.ultimo_mes || '-'}</div></div>`;
+        html += `<div class="resumo-card resumo-aprovados"><div class="resumo-label">Aprovados - Último Dia</div><div class="resumo-valor">R$ ${resumoProtheus.valor_ultimo_dia.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="resumo-data">${formatarDataBR(resumoProtheus.ultimo_dia) || '-'}</div></div>`;
+        html += `<div class="resumo-card resumo-aprovados"><div class="resumo-label">Aprovados - Último Mês</div><div class="resumo-valor">R$ ${resumoProtheus.valor_ultimo_mes.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="resumo-data">${formatarDataBR(resumoProtheus.ultimo_mes, 'mes') || '-'}</div></div>`;
     }
     if (resumoCls) {
-        html += `<div class="resumo-card resumo-aprovacao"><div class="resumo-label">Em Aprovação - Último Dia</div><div class="resumo-valor">R$ ${resumoCls.valor_ultimo_dia.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="resumo-data">${resumoCls.ultimo_dia || '-'}</div></div>`;
-        html += `<div class="resumo-card resumo-aprovacao"><div class="resumo-label">Em Aprovação - Último Mês</div><div class="resumo-valor">R$ ${resumoCls.valor_ultimo_mes.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="resumo-data">${resumoCls.ultimo_mes || '-'}</div></div>`;
+        html += `<div class="resumo-card resumo-aprovacao"><div class="resumo-label">Em Aprovação - Último Dia</div><div class="resumo-valor">R$ ${resumoCls.valor_ultimo_dia.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="resumo-data">${formatarDataBR(resumoCls.ultimo_dia) || '-'}</div></div>`;
+        html += `<div class="resumo-card resumo-aprovacao"><div class="resumo-label">Em Aprovação - Último Mês</div><div class="resumo-valor">R$ ${resumoCls.valor_ultimo_mes.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="resumo-data">${formatarDataBR(resumoCls.ultimo_mes, 'mes') || '-'}</div></div>`;
     }
     html += '</div>';
     container.innerHTML = html;
+}
+
+function parseValorBR(valor) {
+    if (typeof valor === 'number') return valor;
+    return parseFloat(valor.replace(/\./g, '').replace(',', '.'));
 }
 
 function renderDashboard(data, container, section) {
@@ -126,22 +118,24 @@ function renderDashboard(data, container, section) {
         return;
     }
     // Ordenar do maior para o menor total
-    data = data.slice().sort((a, b) => b.total_representante - a.total_representante);
+    data = data.slice().sort((a, b) => parseValorBR(b.total_representante) - parseValorBR(a.total_representante));
     let totalGeral = 0;
     let html = '<table class="dashboard-table"><thead><tr><th>VENDEDOR</th><th>VALOR</th></tr></thead><tbody>';
     data.forEach((rep, idx) => {
-        totalGeral += rep.total_representante;
+        totalGeral += parseValorBR(rep.total_representante);
         const repId = `${section}-rep-${idx}`;
         html += `<tr class="rep-header" onclick="toggleRep('${repId}')">
             <td><span class="rep-name">${rep.representante}</span> <span class="rep-toggle" id="${repId}-toggle">&#9654;</span></td>
-            <td class="rep-total">R$ ${rep.total_representante.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+            <td class="rep-total">R$ ${rep.total_representante}</td>
         </tr>`;
         html += `<tr class="rep-clientes-row" id="${repId}" style="display:none;"><td colspan="2"><table class="clientes-table"><thead><tr><th>CLIENTES</th><th>VALOR</th></tr></thead><tbody>`;
-        html += rep.clientes.map(cli => `<tr><td>${cli.cliente}</td><td>R$ ${cli.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td></tr>`).join('');
-        html += `<tr class="soma-row"><td>Total do Representante</td><td>R$ ${rep.total_representante.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td></tr>`;
+        html += rep.clientes.map(cli => `<tr><td>${cli.cliente}</td><td>R$ ${cli.valor}</td></tr>`).join('');
+        html += `<tr class="soma-row"><td>Total do Representante</td><td>R$ ${rep.total_representante}</td></tr>`;
         html += '</tbody></table></td></tr>';
     });
-    html += `<tr class="total-geral"><td>Total Geral</td><td><b>R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}</b></td></tr>`;
+    // Formatar o total geral para BR
+    const totalGeralFormatado = totalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+    html += `<tr class="total-geral"><td>Total Geral</td><td><b>R$ ${totalGeralFormatado}</b></td></tr>`;
     html += '</tbody></table>';
     container.innerHTML = html;
 }
@@ -160,7 +154,11 @@ window.toggleRep = function(repId) {
 
 async function loadDashboard() {
     dashboardDiv.innerHTML = '<em>Carregando dados...</em>';
-    const res = await fetch('http://localhost:5000/dashboard_protheus');
+    const res = await fetch(`${API_URL}/dashboard_protheus`);
+    if (res.status === 401) {
+        window.location.href = 'login.html';
+        return;
+    }
     const data = await res.json();
     resumoProtheus = data;
     renderResumoTopo();
@@ -169,9 +167,51 @@ async function loadDashboard() {
 
 async function loadDashboardCls() {
     dashboardClsDiv.innerHTML = '<em>Carregando dados da CLS...</em>';
-    const res = await fetch('http://localhost:5000/dashboard_cls');
+    const res = await fetch(`${API_URL}/dashboard_cls`);
+    if (res.status === 401) {
+        window.location.href = 'login.html';
+        return;
+    }
     const data = await res.json();
     resumoCls = data;
     renderResumoTopo();
     renderDashboard(data.dados, dashboardClsDiv, 'aprovacao');
-} 
+}
+
+// Função para expandir todos os representantes
+function expandirTodosReps() {
+    document.querySelectorAll('.rep-clientes-row').forEach(el => {
+        el.style.display = '';
+    });
+    document.querySelectorAll('.rep-toggle').forEach(toggle => {
+        toggle.innerHTML = '&#9660;';
+    });
+}
+
+downloadBtn.onclick = function() {
+    // Baixar imagem gerada pelo backend
+    fetch('/export_dashboard_image')
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'dashboard.png';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+};
+
+window.onload = () => {
+    // Exibe upload só para admin
+    const role = localStorage.getItem('role');
+    if (role === 'admin') {
+        document.getElementById('admin-actions').style.display = 'block';
+    } else {
+        document.getElementById('admin-actions').style.display = 'none';
+    }
+    loadDashboard();
+    loadDashboardCls();
+}; 

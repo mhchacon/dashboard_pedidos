@@ -1,5 +1,7 @@
-Flask
+flask
 flask-cors
 pymongo
+python-dotenv
+bcrypt
 openpyxl
-python-dotenv 
+pillow 
